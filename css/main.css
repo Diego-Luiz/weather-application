@@ -56,7 +56,6 @@ abbr{
 }
 #input-container__query{
     padding-left: 1em;
-    margin-right: .5em;
     flex-grow: 1;
     font-size: 1.05rem;
     border: none;
@@ -70,10 +69,10 @@ abbr{
     outline-offset: -1px;
 }
 .btn-search{
-    padding: .35em .5em;
+    padding: .25em;
     border: none;
     border-radius: 50%;
-    background-color: black;
+    background: transparent;
 }
 .btn-search:focus{
     outline: solid 1px white;
@@ -101,7 +100,7 @@ abbr{
 .location__region{ 
     position: absolute;
     top: 100%;
-    left: 20px;
+    right: 0;
     max-width: 100%;
     font-size: .85rem;
     white-space: nowrap;
@@ -118,10 +117,19 @@ abbr{
     padding-left: .35em;
     font-size: 1.02rem;
 }
-.description__image{
-    width: 35px;
-    height: 35px;
+.description-img-box{
+    display: flex;
+    min-width: 35px;
+    max-width: 50%;
+    min-height: 35px;
+    max-height: 40px;
     margin-right: .25em;
+    overflow: hidden;
+}
+.description__image{
+    display: block;
+    max-width: 100%;
+    object-fit: cover;
 }
 .feeling{
     position: absolute;
