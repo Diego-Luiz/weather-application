@@ -1,72 +1,96 @@
-import WEATHERSTACK_API from "../weatherstack-api.js";
+import OPENWEATHER_API from "../openweather-api.js";
 
 const wheatherApp = (function() {
+  'use strict'
   const inputQuery = document.getElementById('input-container__query');
   const btnSearch = document.querySelector('.btn-search');
-  const resultContainer = document.querySelector('.result-container');
+  const initialContainer = document.querySelector('.initial-container');
+  const responseContainer = document.querySelector('.response-container');
+  const loadingBox = document.querySelector('.loading-box');
+  const initialMsg = document.querySelector('.initial-msg');
   const locationCity = document.querySelector('.location__city');
-  const locationCountry = document.querySelector('.location__country');
-  const locationRegion = document.querySelector('.location__region');
   const temperatureValue = document.querySelector('.temperature__value');
-  const descriptionImgBox = document.querySelector('.description-img-box');
+  const descriptionImage = document.querySelector('.description__image');
   const descriptionValue = document.querySelector('.description__value');
   const feelingValue = document.querySelector('.feeling__value');
   const umidityValue = document.querySelector('.umidity__value');
   const windValue = document.querySelector('.wind__value');
 
-  const errorsMap = new Map([
-    [404, 'The searched term was not found'],
-    [101, `The access key is invalid or wasn't found`], 
-    [104, `The app can't make any more requests`], 
-    [601, 'The searched term was not found or the input is empty'],
-    [615, 'The app request has failed']
-  ]);
-
+  let finishedLoading = false;
   btnSearch.addEventListener('click', handleSearching);
-  let example = `{"request":{"type":"City","query":"Ponta Pora, Brazil","language":"en","unit":"m"},"location":{"name":"Ponta Pora","country":"Brazil","region":"Mato Grosso do Sul","lat":"-22.533","lon":"-55.717","timezone_id":"America\/Campo_Grande","localtime":"2022-01-14 10:38","localtime_epoch":1642156680,"utc_offset":"-4.0"},"current":{"observation_time":"02:38 PM","temperature":26,"weather_code":122,"weather_icons":["https:\/\/assets.weatherstack.com\/images\/wsymbols01_png_64\/wsymbol_0004_black_low_cloud.png"],"weather_descriptions":["Overcast"],"wind_speed":22,"wind_degree":360,"wind_dir":"N","pressure":1019,"precip":0,"humidity":74,"cloudcover":100,"feelslike":27,"uv_index":7,"visibility":10,"is_day":"yes"}}`;
-  
+
   async function handleSearching(){
+    finishedLoading = false;
+    handleLoadAnimation();
     let query = inputQuery.value.trim();
-    const request = `http://api.weatherstack.com/current?access_key=${WEATHERSTACK_API}&query=${query}&units=m`;
+    const request = `http://api.openweathermap.org/data/2.5/weather?q=${query}&units=metric&appid=${OPENWEATHER_API}`;
     const response = await fetch(request);
     if(!response.ok) {
-      alert('Error during the requisition');
+      alert('An error has occured! Check if the location name is right and try again');
+      handleLoadAnimation(true);
       return;
     }
     const data = await response.json();
-    if(data.error !== undefined){
-      let { error:{ code } } = data;
-      let message = errorsMap.get(code) === undefined ? `An error with the app has occured, please try again or contact the owner` : errorsMap.get(code);
-      alert(`Error in the API: ${message}`);
+    insertDataInDOM(data)
+      .then(() => {
+        finishedLoading = true;
+        handleLoadAnimation();
+      })
+      .catch(() => {
+        alert(`The data couldn't be displayed!`);
+      })
+  }
+  function insertDataInDOM({ weather, main:{ temp, feels_like:feeling, humidity}, wind:{ speed:wind}, name:city }){
+    return new Promise((resolve, reject) => {
+      try{
+        locationCity.textContent = city;
+        temperatureValue.textContent = temp.toFixed(1);
+        feelingValue.textContent = feeling.toFixed(1);
+        umidityValue.textContent = humidity;
+        windValue.textContent = wind;
+        descriptionValue.textContent = weather[0]['description'];
+        const icon = `http://openweathermap.org/img/wn/${weather[0]['icon']}@2x.png`;
+        descriptionImage.setAttribute('src', icon);
+        setTimeout(() => { resolve(); }, 750);
+      } catch { reject(); }
+    })
+  }
+  function handleLoadAnimation(errorOcurred){
+    if(errorOcurred){
+      loadingBox.classList.remove('--active');
       return;
     }
-    insertDataInDOM(data);
-  }
-  function insertDataInDOM({ current:{ temperature,  feelslike, humidity, weather_descriptions:wDescriptions, weather_icons:wIcons, wind_speed}, location:{ name:city, country, region } }){
-    locationCity.textContent = `${city},`;
-    if(region !== undefined && region !== '') locationRegion.textContent = region;
-    else locationRegion.classList.add('--no-region');
-    locationCountry.textContent = country;
-    temperatureValue.textContent = temperature;
-    feelingValue.textContent = feelslike;
-    umidityValue.textContent = humidity;
-    windValue.textContent = wind_speed;
-    let textDescription = '';
-    wDescriptions.forEach((element) => {
-      textDescription += element;
-    })
-    descriptionValue.textContent = textDescription;
-    const iconsFragment = document.createDocumentFragment();
-    let image = undefined;
-    wIcons.forEach((element) => {
-      image = document.createElement('img');
-      image.setAttribute('src', element);
-      image.setAttribute('alt', '');
-      image.setAttribute('role', 'presentation');
-      image.className = 'description__image';
-      iconsFragment.appendChild(image);
-    })
-    descriptionImgBox.appendChild(iconsFragment);
+    if(finishedLoading) {
+      loadingBox.classList.remove('--active');
+      initialContainer.classList.add('--disabled');
+      initialMsg.classList.add('--disabled');
+      if(responseContainer.classList.contains('--enabled')) {
+        const animationFunction = () => {
+          responseContainer.style.animation = 'changeContent 800ms ease-in-out';
+        }
+        const removeEvtListener = () => {
+          requestAnimationFrame(() => { responseContainer.style.animation = ''; });
+          responseContainer.removeEventListener('animationend', removeEvtListener);
+        }
+        responseContainer.addEventListener('animationend', removeEvtListener);
+        requestAnimationFrame(animationFunction);
+      } else {
+        const transitionFunction = () => {
+          responseContainer.classList.add('--enabled');
+        }
+        const removeEvtListener = () => {
+          responseContainer.style.overflow = 'visible'; 
+          responseContainer.removeEventListener('transitionend', removeEvtListener);
+        }
+        responseContainer.addEventListener('transitionend', removeEvtListener);
+        requestAnimationFrame(transitionFunction);
+      }
+    } else {
+      requestAnimationFrame(() => { 
+        loadingBox.classList.add('--active');
+        initialContainer.classList.remove('--disabled');
+      });
+    }
   }
   return { handleSearching }
 })();
