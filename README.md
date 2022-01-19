@@ -26,7 +26,7 @@ A weather application that shows the current weather given a city (location), us
   </tbody>
 </table>
 
-## Screenshot 📱 Desktop
+## Screenshot 🖥️ Desktop
 <table align="center">
   <tbody>
     <tr>
