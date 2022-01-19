@@ -2,7 +2,7 @@
 A weather application that shows the current weather given a city (location), using [OpenWeatherMap API](https://openweathermap.org/api). Responsive, mobile first.
 
 ## 🛠️ How to run the project
-- Access the [live site](https://fiber-landingpage.netlify.app/)
+- Access the [live site](https://diego-weather-app.netlify.app/)
 
 ## Screenshot 📱 Phone
 <table align="center">
