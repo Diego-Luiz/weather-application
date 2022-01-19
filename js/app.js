@@ -23,7 +23,7 @@ const wheatherApp = (function() {
     finishedLoading = false;
     handleLoadAnimation();
     let query = inputQuery.value.trim();
-    const request = `http://api.openweathermap.org/data/2.5/weather?q=${query}&units=metric&appid=${OPENWEATHER_API}`;
+    const request = `https://api.openweathermap.org/data/2.5/weather?q=${query}&units=metric&appid=${OPENWEATHER_API}`;
     const response = await fetch(request);
     if(!response.ok) {
       alert('An error has occured! Check if the location name is right and try again');
